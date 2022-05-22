@@ -5,15 +5,15 @@ Studying complex structural variations in cancer using long reads
 
 # Manual
 
-``usage: script.py [-h] [--chrom_sizes chrom_sizes filename]
-                 [--block_size BLOCK_SIZE]
-                 [--reference_length REFERENCE_LENGTH] [-o OUT] [--plot]
-                 [--breakpoints BREAKPOINTS] [--ylim YLIM] [--zoomin]
-                 filename
+usage: script.py [-h] [--chrom_sizes chrom_sizes filename] \\
+                 [--block_size BLOCK_SIZE] \\
+                 [--reference_length REFERENCE_LENGTH] [-o OUT] [--plot] \\
+                 [--breakpoints BREAKPOINTS] [--ylim YLIM] [--zoomin] \\
+                 filename \\
 
-Create coverage graphics from bam file.
+Create coverage graphics from bam file. \\
 
-positional arguments:
+positional arguments: \\
   filename              Alignment bam filename
 
 options:
