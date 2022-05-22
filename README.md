@@ -95,7 +95,8 @@ Text near breakpoints indicates the chromosome of the second sequence of the bre
 
 Here is an example of a zoom-in around an interecting position on chromosome 3.
 
-![alt text](https://github.com/madshuttlecock/structural-variations/blob/main/chr10_7017549+-1Mbp%20(1).png?raw=true)
+![zoom1](https://user-images.githubusercontent.com/22745262/169700270-39d4ae0d-d68a-4c26-bb6a-5d47576cf4f1.png)
+![zoom2](https://user-images.githubusercontent.com/22745262/169700274-430db595-a9f5-4334-80a4-183228331b1e.png)
 
 
 
