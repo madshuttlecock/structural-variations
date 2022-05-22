@@ -89,7 +89,10 @@ The transparency indicate read support (the more transparent a triangle is, the 
 
 Text near breakpoints indicates the chromosome of the second sequence of the breakpoint.
 
-![alt text](https://github.com/madshuttlecock/structural-variations/blob/main/res2.png)
+![alt text](https://github.com/madshuttlecock/structural-variations/blob/main/res1.png)
+
+
+
 
 
 
