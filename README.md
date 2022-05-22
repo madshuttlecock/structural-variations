@@ -5,7 +5,7 @@ Studying complex structural variations in cancer using long reads
 
 # Manual
 
-usage: script.py [-h] [--chrom_sizes chrom_sizes filename]
+`usage: script.py [-h] [--chrom_sizes chrom_sizes filename]
                  [--block_size BLOCK_SIZE]
                  [--reference_length REFERENCE_LENGTH] [-o OUT] [--plot]
                  [--breakpoints BREAKPOINTS] [--ylim YLIM] [--zoomin]
@@ -31,4 +31,4 @@ options:
                         Breakpoint csv file
   --ylim YLIM           Y limits on graphs
   --zoomin              Should we print the coverage around interesting
-                        breakpoints? Provide breakpoint file
+                        breakpoints? Provide breakpoint file`
