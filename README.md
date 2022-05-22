@@ -39,7 +39,7 @@ After that, we developed a Python3 script for visualizing read coverage by haplo
 
 ## Results 
 
-We developed a Python3 script for visualizing read coverage by haplotype and breakpoints. It works on a `bam` file and produces pictures in `png` format. It creates visualizations of every chromosome and also a zoom-in of possible breakage-fusion bridge events.
+We developed a Python3 script for visualizing read coverage by haplotype and breakpoints. It works on a `bam` file and produces pictures in `png` format. It creates visualizations of every chromosome and also a zoom-in of all possible breakage-fusion bridge events.
 
 ### Manual
 
@@ -90,6 +90,12 @@ The transparency indicate read support (the more transparent a triangle is, the 
 Text near breakpoints indicates the chromosome of the second sequence of the breakpoint.
 
 ![alt text](https://github.com/madshuttlecock/structural-variations/blob/main/res1.png)
+
+### Visualization for COLO829: zoom-in on chromosome 3
+
+Here is an example of a zoom-in around an interecting position on chromosome 3.
+
+![alt text](https://github.com/madshuttlecock/structural-variations/blob/main/chr10_7017549+-1Mbp (1).png)
 
 
 
