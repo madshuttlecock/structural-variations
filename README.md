@@ -32,11 +32,21 @@ We had data of ONT sequencing for tumor and normal cells int he form of an alrea
 
 We use Sniffles and Mikhail's own tool (part of HapDup) for determining breakpoints. Sniffles provided a less accurate result, so we focused on the HapDup result.
 
+We found breakpoints with Sniffles using the following commands:
+
+`sniffles --input <tumor alignment in bam format> --vcf tumor_variants_sniffles.vcf --output-rnames --threads 10`  for tumor
+
+`sniffles --input <normal alignment in bam format> --vcf normal_variants_sniffles.vcf --output-rnames --threads 10` for normal
+
+After that, we parsed the results with Python3.
+
+HapDup results were provided by Mikhail.
+
 After that, we developed a Python3 script for visualizing read coverage by haplotype and breakpoints. We analysed possible breakage-fusion bridge (a possible way of forming a mutation) events and performed local assembly with Flye assembler (version 2.9-b1768) around the breakpoints to support or contradict our hypothesis. We chose Flye assembler because it was specially designed for ONT reads.
 
 First, we extracted reads covering the region with samtools (version 1.14):
 
-`samtools view -b <tumor file in bam format> "chr3:23000000-27500000" > chr3_23-27.5.bam`
+`samtools view -b <tumor alignment in bam format> "chr3:23000000-27500000" > chr3_23-27.5.bam`
 
 Then, we transformed the file to `fastq` format:
 
@@ -47,6 +57,7 @@ After that, we performed local assembly using Flye:
 `flye --nano-raw chr3_23-27.5.new.fastq --out-dir chr3_23-27res`
 
 After that we aligned the resulting contig using minimap2 (version 2.24-r1122):
+
 `minimap2 -ax map-ont  reference.fasta ./chr325-27res/assembly.fasta > chr3_local.sam`
 
 The resulting contig had the same sequence as reference. So, we tracked earlier stages of the alignment (disjointigs and alignment graph) and aligned them to reference.
@@ -55,6 +66,12 @@ We examined the alignments in IGV genome browser (version 2.11).
 
 
 ## Results 
+
+### Finding breakpoints
+
+In Sniffles results we found that there are a lot of breakpoints present in normal and not in tumor and some breakpoints present in both samples had different orientation. It seemed strange to us, because mutations present in normal shoul very likely be present in tumor also. We believed there were a lot of false positive results, so we decided not to use Snniffles.
+
+### Script
 
 We developed a Python3 script for visualizing read coverage by haplotype and breakpoints. It works on a `bam` file and produces pictures in `png` format. It creates visualizations of every chromosome and also a zoom-in of all possible breakage-fusion bridge events.
 
