@@ -28,13 +28,30 @@ The objectives are as follows:
 
 ## Methods
 
-We had data of ONT sequencing for tumor and normal cells.
+We had data of ONT sequencing for tumor and normal cells int he form of an already prepared alignment of tumor and normal reads to GRCh38 reference. Each read was already phased according to its primary alignment (this information was stored in the `HP` tag).
 
-We used an alignment of tumor read to GRCh38 reference, where each read was phased according to its primary alignment.
+We use Sniffles and Mikhail's own tool (part of HapDup) for determining breakpoints. Sniffles provided a less accurate result, so we focused on the HapDup result.
 
-We used Snniffles and Mikhail's tool based on HapDup for determining breakpoints. Sniffles provided a less accurate result, so we focused on the HapDup result.
+After that, we developed a Python3 script for visualizing read coverage by haplotype and breakpoints. We analysed possible breakage-fusion bridge (a possible way of forming a mutation) events and performed local assembly with Flye assembler (version 2.9-b1768) around the breakpoints to support or contradict our hypothesis. We chose Flye assembler because it was specially designed for ONT reads.
 
-After that, we developed a Python3 script for visualizing read coverage by haplotype and breakpoints. We analysed possible breakage-fusion bridge (a possible way of forming a mutation) events and performed local assembly with Flye around the breakpoints to support or contradict our hypothesis.
+First, we extracted reads covering the region with samtools (version 1.14):
+
+`samtools view -b <tumor file in bam format> "chr3:23000000-27500000" > chr3_23-27.5.bam`
+
+Then, we transformed the file to `fastq` format:
+
+`samtools fastq chr3_23-27.5.sam > chr3_23-27.5.new.fastq`
+
+After that, we performed local assembly using Flye:
+
+`flye --nano-raw chr3_23-27.5.new.fastq --out-dir chr3_23-27res`
+
+After that we aligned the resulting contig using minimap2 (version 2.24-r1122):
+`minimap2 -ax map-ont  reference.fasta ./chr325-27res/assembly.fasta > chr3_local.sam`
+
+The resulting contig had the same sequence as reference. So, we tracked earlier stages of the alignment (disjointigs and alignment graph) and aligned them to reference.
+
+We examined the alignments in IGV genome browser (version 2.11).
 
 
 ## Results 
