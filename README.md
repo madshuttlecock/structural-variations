@@ -32,7 +32,7 @@ We had data of ONT sequencing for tumor and normal cells int he form of an alrea
 
 We use Sniffles and Mikhail's own tool (part of HapDup) for determining breakpoints. Sniffles provided a less accurate result, so we focused on the HapDup result.
 
-We found breakpoints with Sniffles using the following commands:
+We found breakpoints with Sniffles2 (version 2.0.4) using the following commands:
 
 `sniffles --input <tumor alignment in bam format> --vcf tumor_variants_sniffles.vcf --output-rnames --threads 10`  for tumor
 
