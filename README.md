@@ -109,11 +109,14 @@ We examined it in IGV:
 
 We performed local assembly in this region.
 
-We found that indeed there is a different chromosome structure resembling a breakage-fusion-bridge.
+We found that indeed in tumor there is a different chromosome structure resembling a breakage-fusion-bridge.
 
-## Conclusion
+## Future plans
 
-
+* Polish the script
+* Perform local assembly around all possible breakage-fusion-bridge events
+* Analyse results and determine the exact compositions of tumor chromosomes around breakpoints
+* Find the whole set of rearrangements
 
 
 
