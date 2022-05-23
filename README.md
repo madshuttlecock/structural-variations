@@ -100,6 +100,19 @@ Here is an example of a zoom-in around an interecting position on chromosome 3.
 ![zoom1](https://user-images.githubusercontent.com/22745262/169700270-39d4ae0d-d68a-4c26-bb6a-5d47576cf4f1.png)
 
 
+### Analysis for chromosome 3
+
+There is a potential breakage-fusion-bridge event on chromosome 3 (see above).
+
+We examined it in IGV:
+![chr3](https://github.com/madshuttlecock/structural-variations/blob/main/chr3.png)
+
+We performed local assembly in this region.
+
+We found that indeed there is a different chromosome structure resembling a breakage-fusion-bridge.
+
+## Conclusion
+
 
 
 
