@@ -109,8 +109,8 @@ We examined it in IGV:
 
 We performed local assembly in this region and analysed the assembly graph as well as resulting contigs.
 
-![chr3](https://github.com/madshuttlecock/structural-variations/blob/main/graph.png)
 
+<img src="https://github.com/madshuttlecock/structural-variations/blob/main/graph.png" width="100">
 
 We found that indeed in tumor there is a different chromosome structure resembling a breakage-fusion-bridge.
 
