@@ -30,7 +30,7 @@ The objectives are as follows:
 
 We had data of ONT sequencing for tumor and normal cells int he form of an already prepared alignment of tumor and normal reads to GRCh38 reference. Each read was already phased according to its primary alignment (this information was stored in the `HP` tag).
 
-We use Sniffles and Mikhail's own tool (part of HapDup) for determining breakpoints. Sniffles provided a less accurate result, so we focused on the HapDup result.
+We use Sniffles [1, 2] and Mikhail's own tool (part of HapDup [3, 4, 5]) for determining breakpoints. Sniffles provided a less accurate result, so we focused on the HapDup result.
 
 We found breakpoints with Sniffles2 (version 2.0.4) using the following commands:
 
@@ -44,9 +44,9 @@ HapDup results were provided by Mikhail.
 
 We found that Sniffles results had a lot of breakpoints present in normal and not in tumor and some breakpoints present in both samples had different orientation. It seemed strange to us, because mutations present in normal shoul very likely be present in tumor also. We believed there were a lot of false positive results, so we decided not to use Snniffles and focused only on HapDup results.
 
-After that, we developed a Python3 script for visualizing read coverage by haplotype and breakpoints. We analysed possible breakage-fusion bridge (a possible way of forming a mutation) events and performed local assembly with Flye assembler (version 2.9-b1768) around the breakpoints to support or contradict our hypothesis. We chose Flye assembler because it was specially designed for ONT reads.
+After that, we developed a Python3 script for visualizing read coverage by haplotype and breakpoints. We analysed possible breakage-fusion bridge (a possible way of forming a mutation) events and performed local assembly with Flye assembler (version 2.9-b1768) [6, 7] around the breakpoints to support or contradict our hypothesis. We chose Flye assembler because it was specially designed for ONT reads.
 
-First, we extracted reads covering the region with samtools (version 1.14):
+First, we extracted reads covering the region with samtools (version 1.14) [8]:
 
 `samtools view -b <tumor alignment in bam format> "chr3:23000000-27500000" > chr3_23-27.5.bam`
 
@@ -70,6 +70,8 @@ We examined the alignments in IGV genome browser (version 2.11).
 ## Results 
 
 We developed a Python3 script for visualizing read coverage by haplotype and breakpoints. It works on a `bam` file and produces pictures in `png` format. It creates visualizations of every chromosome and also a zoom-in of all possible breakage-fusion bridge events.
+
+The script can be used as a console script (`script.py`) and also all functions can be imported in Python3 separately (just import `counter.py`).
 
 ### Manual
 
@@ -151,7 +153,18 @@ We found that indeed in tumor there is a different chromosome structure resembli
 * Analyse results and determine the exact compositions of tumor chromosomes around breakpoints
 * Find the whole set of rearrangements
 
+## References
 
+1. Sedlazeck, F.J., Rescheneder, P., Smolka, M. et al. Accurate detection of complex structural variations using single-molecule sequencing. Nat Methods 15, 461–468 (2018). https://doi.org/10.1038/s41592-018-0001-7
+2. https://github.com/fritzsedlazeck/Sniffles
+3. Kishwar Shafin, Trevor Pesout, Pi-Chuan Chang, Maria Nattestad, Alexey Kolesnikov, Sidharth Goel, Gunjan Baid et al. "Haplotype-aware variant calling enables high accuracy in nanopore long-reads using deep neural networks." bioRxiv (2021). doi:10.1101/2021.03.04.433952
+4. Mikhail Kolmogorov, Jeffrey Yuan, Yu Lin and Pavel Pevzner, "Assembly of Long Error-Prone Reads Using Repeat Graphs", Nature Biotechnology, 2019 doi:10.1038/s41587-019-0072-8
+5. https://github.com/fenderglass/hapdup
+6. Mikhail Kolmogorov, Jeffrey Yuan, Yu Lin and Pavel Pevzner, "Assembly of Long Error-Prone Reads Using Repeat Graphs", Nature Biotechnology, 2019 doi:10.1038/s41587-019-0072-8
+7. https://github.com/fenderglass/Flye
+8. Twelve years of SAMtools and BCFtools, 
+Petr Danecek, James K Bonfield, Jennifer Liddle, John Marshall, Valeriu Ohan, Martin O Pollard, Andrew Whitwham, Thomas Keane, Shane A McCarthy, Robert M Davies, Heng Li, 
+GigaScience, Volume 10, Issue 2, February 2021, giab008, https://doi.org/10.1093/gigascience/giab008
 
 
 
