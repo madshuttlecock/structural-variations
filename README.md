@@ -42,6 +42,8 @@ After that, we parsed the results with Python3.
 
 HapDup results were provided by Mikhail.
 
+We found that Sniffles results had a lot of breakpoints present in normal and not in tumor and some breakpoints present in both samples had different orientation. It seemed strange to us, because mutations present in normal shoul very likely be present in tumor also. We believed there were a lot of false positive results, so we decided not to use Snniffles and focused only on HapDup results.
+
 After that, we developed a Python3 script for visualizing read coverage by haplotype and breakpoints. We analysed possible breakage-fusion bridge (a possible way of forming a mutation) events and performed local assembly with Flye assembler (version 2.9-b1768) around the breakpoints to support or contradict our hypothesis. We chose Flye assembler because it was specially designed for ONT reads.
 
 First, we extracted reads covering the region with samtools (version 1.14):
@@ -66,12 +68,6 @@ We examined the alignments in IGV genome browser (version 2.11).
 
 
 ## Results 
-
-### Finding breakpoints
-
-In Sniffles results we found that there are a lot of breakpoints present in normal and not in tumor and some breakpoints present in both samples had different orientation. It seemed strange to us, because mutations present in normal shoul very likely be present in tumor also. We believed there were a lot of false positive results, so we decided not to use Snniffles.
-
-### Script
 
 We developed a Python3 script for visualizing read coverage by haplotype and breakpoints. It works on a `bam` file and produces pictures in `png` format. It creates visualizations of every chromosome and also a zoom-in of all possible breakage-fusion bridge events.
 
