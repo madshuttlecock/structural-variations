@@ -107,7 +107,10 @@ There is a potential breakage-fusion-bridge event on chromosome 3 (see above).
 We examined it in IGV:
 ![chr3](https://github.com/madshuttlecock/structural-variations/blob/main/chr3.png)
 
-We performed local assembly in this region.
+We performed local assembly in this region and analysed the assembly graph as well as resulting contigs.
+
+![chr3](https://github.com/madshuttlecock/structural-variations/blob/main/graph.png)
+
 
 We found that indeed in tumor there is a different chromosome structure resembling a breakage-fusion-bridge.
 
