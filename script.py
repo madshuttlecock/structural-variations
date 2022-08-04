@@ -3,15 +3,12 @@ from counter import *
 
 parser = argparse.ArgumentParser(description='Create coverage graphics from bam file.')
 
-parser.add_argument('--bam', metavar='bam file', type=str, 
-                    help='Alignment bam filename. If --count is not provided, this argument is ignored.')
-
-parser.add_argument('--bams', metavar='bam files', type=list, default=None,
+parser.add_argument('--bams', metavar='bam files', nargs='+', type=str, default=None,
                     help='Alignment bam filenames. If --count is not provided, this argument is ignored.')
 
 
-parser.add_argument('--coverage', metavar='coverage folder', type=str, default='.',
-                    help='Counts folder obtained previously.')
+parser.add_argument('--coverages', metavar='coverage folders', nargs='+', type=str, default=['.'],
+                    help='Counts folders obtained previously. One or more.')
 
 
 parser.add_argument('--chrom_sizes', metavar='chrom_sizes filename', type=str, action='store', default=None,
@@ -65,18 +62,38 @@ except:
     pass
 
 print(args.bams)
+counts = []
+names = []
+
 
 if args.count:
-    if args.chrom_sizes is not None:
-        counts = get_counts(args.bam, chr_sizes=args.chrom_sizes, block_size=args.block_size, log_dir = args.out + '/' + 'coverage')   
-    else:
-        print(args.block_size)
-        counts = get_counts(args.bam, reference_length=args.reference_length, block_size=args.block_size, log_dir = args.out + '/' + 'coverage')
+    
+    for bam in args.bams:
+        bam_name = bam.split('/')[-1].split(".")[0] #bam.replace('/', '_').replace('.', '')
+        if bam_name in names:
+            print("ERROR! Same names.")
+        names += [bam_name]
+        try:
+            os.mkdir(args.out + '/' + bam_name)
+        except:
+            pass
+        
+        counts += [get_counts(bam, block_size=args.block_size, log_dir = args.out + '/' + bam_name + '/')]
+    
+    names_file = open(args.out + '/' + "names.txt", "w")
+    print('\n'.join(map(str, names)), file=names_file)
+    names_file.close()
+    
 else:
-    try:
-        counts = read_counts(args.coverage)
-    except:
-        counts = read_counts(args.coverage + '/coverage')
+    
+    for coverage in args.coverages:
+        bam_name = coverage.split('/')[-1]
+        names += [bam_name]
+        
+        counts += [read_counts(coverage)]
+        
+print(len(counts))
+print(counts[0])
         
 if args.plot == True:
     try:
@@ -89,9 +106,7 @@ if args.plot == True:
         somatic.columns = ['chrA', 'posA', 'orA', 'chrB', 'posB', 'orB', 'haplo', 'reads', 'ref_reads', 'a', 'b', 'c']
     else:
         somatic = pd.DataFrame()
-        #somatic.columns = ['chrA', 'posA', 'orA', 'chrB', 'posB', 'orB', 'haplo', 'reads', 'ref_reads', 'a', 'b', 'c']
-        
-    visualize(counts, somatic, int(args.ylim), savefig=True, filename = str(args.out) + '/' + 'visualization/coverage.png')
+    visualize(counts, somatic, int(args.ylim), savefig=True, filename = str(args.out) + '/' + 'visualization/coverage.png', names=names)
     
 if args.potential == True:
     try:
