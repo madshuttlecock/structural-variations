@@ -12,20 +12,21 @@ from scipy.cluster.hierarchy import dendrogram
 
 
 
-def get_counts(filename, chr_sizes=None, reference_length=None, block_size=100000, unphased=False, log_dir = '.'):
+def get_counts(filename, block_size=100000, unphased=False, log_dir = '.'):
     try:
         os.mkdir(log_dir)
     except:
         pass
-        
-    if chr_sizes is not None:
-        chr_data = pd.read_csv(chr_sizes, sep='\t', header=None)
-        chr_data.columns = ['name', 'siz']
-        print(chr_data)
-        chr_dict = dict(zip(chr_data.name, chr_data.siz))
-        print(chr_dict)
     
     samfile = pysam.AlignmentFile(filename, "rb")
+    
+    print("R", samfile.references)
+    print("L", samfile.lengths)
+    
+    chr_dict = dict(zip(samfile.references, samfile.lengths))
+    print(chr_dict)
+    
+    
     block_array = dict()# np.zeros((2, reference_length//block_size+1))
     x = 0
     #good = 0
@@ -53,17 +54,13 @@ def get_counts(filename, chr_sizes=None, reference_length=None, block_size=10000
         #print(ref)
         
         if ref not in block_array:
-            if chr_sizes is not None:
-                try:
-                    reference_length = chr_dict[ref]
-                except:
-                    print(ref, 'E')
-                    continue
+            reference_length = chr_dict[ref]
             block_array[ref] = np.zeros((3, reference_length//block_size+1))
             chr_list += [ref]
         
         #print(chr_dict)
         #print(read.query_name, read.reference_start, read.reference_end)
+        
         try:
             tag = int(read.get_tag('HP'))-1
         except:
@@ -83,7 +80,7 @@ def get_counts(filename, chr_sizes=None, reference_length=None, block_size=10000
             
             block_len = min(reference_length, (i+1)*block_size) - i * block_size
             if block_len == 0:
-                print(reference_length, (i+1)*block_size, i * block_size)
+                print("DEBUG", reference_length, (i+1)*block_size, i * block_size)
             block_array[ref][tag][i] += read_block_len / block_len
             #print(end-start, read_block_len, block_size, block_len)
             #block_array[ref][tag][i][1] += 1
@@ -93,9 +90,10 @@ def get_counts(filename, chr_sizes=None, reference_length=None, block_size=10000
     samfile.close()
     res = dict()
     print(chr_list)
+    
     for ref in chr_list:
-        if chr_sizes is not None:
-            reference_length = chr_dict[ref]
+        reference_length = chr_dict[ref]
+        
         index = pd.DataFrame(np.arange(0, reference_length + block_size-1, block_size), dtype=int)
         
         data = pd.DataFrame(pd.concat([index, pd.DataFrame(block_array[ref], dtype=float).T], axis=1))
@@ -104,11 +102,14 @@ def get_counts(filename, chr_sizes=None, reference_length=None, block_size=10000
         res[ref] = data
         
         
+        print("REF", ref, log_dir + "/" + ref + ".csv")
+        
         data.to_csv(log_dir + "/" + ref + ".csv")
     
     out = open(log_dir + "/chr_names.txt", "w")
     for elem in chr_list:
         print(elem, file=out)
+    out.close()
     return res
 
 
@@ -146,57 +147,66 @@ def read_counts_raw(log_dir, block_size=0):
 def transform(x):
     return x / 1e6
 
-def visualize(coverage, breakpoints=pd.DataFrame(), ylimit=500, xlimit=None, savefig=False, filename="coverage.png"):
+def visualize(coverages, breakpoints=[pd.DataFrame()], ylimit=500, xlimit=None, savefig=False, filename="coverage.png", names=None):
 
     c = ['red', 'blue', 'darkgreen']
     m = {"+":'>', '-':'<'}
-
-    fig, axs = plt.subplots(len(coverage), squeeze=False)
-    fig.set_figheight(len(coverage) * 6)
+   
+    
+    fig, axs = plt.subplots(len(coverages[0]), squeeze=False)
+    fig.set_figheight(len(coverages[0]) * 6)
     fig.set_figwidth(20)
 
     
-    i=0
+   
     
-    print(len(coverage))
+    print("L", len(coverages))
 
-    for elem in coverage:
+    for (n, coverage) in enumerate(coverages):
         
-        axs[i][0].set(title="Coverage by haplotype for chromosome" + str(elem))
-        axs[i][0].plot(transform(coverage[elem].beginning), coverage[elem].haploA, color='blue', alpha=0.7, label='haploA')
-        axs[i][0].plot(transform(coverage[elem].beginning), coverage[elem].haploB, color='green', alpha=0.7, label= 'haploB')
-        try:
-            axs[i][0].plot(transform(coverage[elem].beginning), coverage[elem].unphased, color='red', alpha=0.7, label='unphased')
-        except:
-            pass
-        axs[i][0].set_ylim((-10, ylimit))
-        axs[i][0].set_xlabel("Mbp\n")
-        axs[i][0].set_ylabel("Coverage")
-        if xlimit is not None:
-            axs[i][0].set_xlim((0, xlimit))
+        i=0
+        for elem in coverage:
         
-        upper_general = ylimit - 20 
-        j = 0
-        for mut in breakpoints.values:
-            upper = upper_general - j * 20
+            axs[i][0].set(title="Coverage by haplotype for chromosome" + str(elem))
             
+            if len(coverages) == 1:
+                axs[i][0].plot(transform(coverage[elem].beginning), coverage[elem].haploA, color='blue', alpha=0.7, label='haploA')
+                axs[i][0].plot(transform(coverage[elem].beginning), coverage[elem].haploB, color='green', alpha=0.7, label= 'haploB')
+                try:
+                    axs[i][0].plot(transform(coverage[elem].beginning), coverage[elem].unphased, color='grey', alpha=0.7, label='unphased')
+                except:
+                    pass
+            else:
+                axs[i][0].plot(transform(coverage[elem].beginning), coverage[elem].unphased, alpha=0.7, label=names[n])
             
-            
-            alpha =  (mut[7] / (mut[7]+ mut[8])) * 0.7 + 0.3
-            
-            if mut[0] == elem:
-                axs[i][0].scatter([transform(mut[1])], [upper], marker=m[mut[2]], color= c[mut[6]], s=160, alpha=alpha)#, label=str(mut[6]))
-                axs[i][0].text(transform(mut[1]), upper, s=mut[3])
-                j += 1
+            axs[i][0].set_ylim((-10, ylimit))
+            axs[i][0].set_xlabel("Mbp\n")
+            axs[i][0].set_ylabel("Coverage")
+            if xlimit is not None:
+                axs[i][0].set_xlim((0, xlimit))
 
-            if mut[3] == elem:
-                axs[i][0].scatter([transform(mut[4])], [upper], marker=m[mut[5]], color=c[mut[6]], s=160, alpha=alpha)#, label=str(mut[6]))
-                axs[i][0].text(transform(mut[4]), upper, s=mut[0])
-                j += 1
-        
-        axs[i][0].legend()
-        
-        i+=1
+            upper_general = ylimit - 20 
+            j = 0
+            for mut in breakpoints.values:
+                upper = upper_general - j * 20
+
+
+
+                alpha =  (mut[7] / (mut[7]+ mut[8])) * 0.7 + 0.3
+
+                if mut[0] == elem:
+                    axs[i][0].scatter([transform(mut[1])], [upper], marker=m[mut[2]], color= c[mut[6]], s=160, alpha=alpha)#, label=str(mut[6]))
+                    axs[i][0].text(transform(mut[1]), upper, s=mut[3])
+                    j += 1
+
+                if mut[3] == elem:
+                    axs[i][0].scatter([transform(mut[4])], [upper], marker=m[mut[5]], color=c[mut[6]], s=160, alpha=alpha)#, label=str(mut[6]))
+                    axs[i][0].text(transform(mut[4]), upper, s=mut[0])
+                    j += 1
+
+            axs[i][0].legend()
+
+            i+=1
     
     if savefig == False:
         plt.show()
