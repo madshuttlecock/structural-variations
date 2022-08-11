@@ -15,7 +15,7 @@ parser.add_argument('--chrom_sizes', metavar='chrom_sizes filename', type=str, a
                     help='Filename of the file with chromosome sizes')
 
 parser.add_argument('--block_size', dest='block_size', action='store',
-                     default=100000,
+                     default=100000, type=int,
                     help='Size of the block, default = 100000')
 
 
@@ -50,8 +50,10 @@ parser.add_argument('--potential', dest='potential', action='store_const',
                      const=True, help='Find popential BFB mutations (TODO descr). Should we plot the coverage around interesting breakpoints? Provide breakpoint file.')
 
 parser.add_argument('--variation', dest='variation', action='store_const',
-                     const=True, help='Find and plot breakpoints around copy number variations. Provide breakpoint file.')
+                     const=True, help='Find and plot copy number variations. If breakpoint file is provided, variations are found around breakpoints.')
 
+parser.add_argument('--plot_breakpoints', dest='plot_breakpoints', action='store_const',
+                     const=True, help='Plot clustered provided breakpoints.')
 
 args = parser.parse_args()
 
@@ -61,7 +63,9 @@ try:
 except:
     pass
 
+print(args)
 print(args.bams)
+
 counts = []
 names = []
 
@@ -78,7 +82,7 @@ if args.count:
         except:
             pass
         
-        counts += [get_counts(bam, block_size=args.block_size, log_dir = args.out + '/' + bam_name + '/')]
+        counts += [get_counts(bam, block_size=int(args.block_size), log_dir = args.out + '/' + bam_name + '/')]
     
     names_file = open(args.out + '/' + "names.txt", "w")
     print('\n'.join(map(str, names)), file=names_file)
@@ -109,6 +113,7 @@ if args.plot == True:
     visualize(counts, somatic, int(args.ylim), savefig=True, filename = str(args.out) + '/' + 'visualization/coverage.png', names=names)
     
 if args.potential == True:
+    #OBSOLETE
     try:
         os.mkdir(args.out + '/potential')
     except:
@@ -124,13 +129,44 @@ if args.variation == True:
         os.mkdir(args.out + '/variation')
     except:
         pass
-    somatic = pd.read_csv(args.breakpoints, header=None, sep = '\t')
-    somatic.columns = ['chrA', 'posA', 'orA', 'chrB', 'posB', 'orB', 'haplo', 'reads', 'ref_reads']
-    change, mean = find_changes(counts, somatic, log_dir = args.out + '/variation')
-    plot(counts, somatic, change=change, mean=mean, savefig=True, dirname = args.out + '/variation') 
+    if args.breakpoints is not None:
+        somatic = pd.read_csv(args.breakpoints, header=None, sep = '\t')
+        somatic.columns = ['chrA', 'posA', 'orA', 'chrB', 'posB', 'orB', 'haplo', 'reads', 'ref_reads', 'a', 'b', 'c']
+    else:
+        somatic = None
+    print("START", args.breakpoints)
+    for (i, elem) in enumerate(counts):
+        change, mean = find_changes(elem, somatic, log_dir = args.out + '/variation_' + names[i])
+        print("FOUND_CHANGES")
+        print(change)
+        plot(elem, somatic, positions=change, mean=mean, savefig=True, dirname = args.out + '/variation_' + names[i]) 
     
 
-    
+if args.plot_breakpoints == True:
+    try:
+        os.mkdir(args.out + '/plot_breakpoints')
+    except:
+        pass
+    if args.breakpoints is not None:
+        try:
+            somatic = pd.read_csv(args.breakpoints, header=None, sep = '\t')
+            somatic.columns = ['chrA', 'posA', 'orA', 'chrB', 'posB', 'orB', 'haplo', 'reads', 'ref_reads', 'a', 'b', 'c']
+        except:
+            try:
+                somatic = pd.read_csv(args.breakpoints, header=None, sep = '\t')
+                somatic.columns = ['chrA', 'posA', 'orA', 'chrB', 'posB', 'orB', 'haplo', 'reads', 'ref_reads']
+            except:
+                print(args.breakpoints)
+                somatic = pd.read_csv(args.breakpoints, sep = '\t')
+                print("S", somatic)
+                somatic.columns = ['chrA', 'posA', 'haplo', 'reads', 'ref_reads']
+    else:
+        print("ERROR! PROVIDE BREAKPOINTS!")
+        exit(0)
+    for (i, elem) in enumerate(counts):
+        change = create_breakpoint_set(somatic)
+        plot(elem, somatic, positions=change, mean=None, savefig=True, dirname = args.out + '/plot_breakpoints_' + names[i]) 
+        
 #if args.plot_only == True:
 #    try:
 #        os.mkdir(args.out + '/visualization')
