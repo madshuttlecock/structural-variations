@@ -304,9 +304,14 @@ def plot_nearest(coverage, breakpoints, savefig=False, dirname='./coverage_zoom_
         
 def extract_chr(data, chr_name):
     first_chr = data[data.chrA==chr_name]
-    second_chr = data[data["chrB"]==chr_name]
+    print(chr_name, first_chr)
     dict1 = dict(zip(first_chr.posA, first_chr))
-    dict2 = dict(zip(second_chr.posB, second_chr))
+    if 'chrB' in data.columns:
+        second_chr = data[data["chrB"]==chr_name]
+        dict2 = dict(zip(second_chr.posB, second_chr))
+    else:
+        second_chr = data.iloc[0:0]
+        dict2 = dict()
     resulting_dict = {**dict1, **dict2}
     
     return pd.concat([first_chr, second_chr], axis=0), resulting_dict
@@ -366,6 +371,7 @@ def load(filename='finder_log.txt'):
 def find_changes(coverage, breakpoints=None, zoom=100, log_dir = '.'):
     ans = dict()
     mean = dict()
+    print("BP", breakpoints)
     for chr_name in coverage:
         print(chr_name)
         ans[chr_name] = set()
@@ -475,18 +481,32 @@ def cluster(chr_positions, threshold=2000000, chr_name=None, dirname='.'):
 
 
 def plot(coverage, breakpoints=pd.DataFrame(), positions=None, mean=None, load_file=None, savefig=False, dirname='./local'):
+    if breakpoints is None:
+        breakpoints = pd.DataFrame()
+        
     def good(pos, ref_pos_1, ref_pos_2):
         return (ref_pos_1 <= pos) and (pos <= ref_pos_2)
     
-    if load is not None:
+    
+    
+    if load_file is not None:
         positions, mean = load(load_file)
     
     c = ['red', 'blue', 'darkgreen']
     m = {"+":'>', '-':'<'}
     
-    for ch in positions:
+    for ch in coverage:
+        print("P", ch)
+        print(positions[ch])
+        #print()
+        #print(np.array(list(positions[ch])))
         
-        single_pos = np.array(positions[ch]).reshape(-1, 1)
+        
+        tmp = np.array(list(positions[ch]))
+        #print("TMP")
+        #print(tmp)
+        
+        single_pos = np.array(tmp).reshape(-1, 1)
         #print(single_pos)
         clusters = cluster(single_pos, chr_name=ch, dirname=dirname)
         #return
@@ -512,6 +532,9 @@ def plot(coverage, breakpoints=pd.DataFrame(), positions=None, mean=None, load_f
             
             plt.figure(figsize=(15, 10))
             
+            ylim = (coverage[ch].haploA + coverage[ch].haploB + coverage[ch].unphased).mean() * 5
+                
+                
             plt.plot(transform(coverage[ch].beginning), coverage[ch].haploA, color= 'blue')
             plt.plot(transform(coverage[ch].beginning), coverage[ch].haploB, color = 'green')
             plt.plot(transform(coverage[ch].beginning), coverage[ch].unphased, color = 'red')
@@ -527,35 +550,43 @@ def plot(coverage, breakpoints=pd.DataFrame(), positions=None, mean=None, load_f
 
             for pos in pos_by_cluster[cl]:
                 #print(cl, pos, curmin, curmax)
-                plt.vlines(transform(pos), 0, 20, linewidth=5, color='red')
+                plt.vlines(transform(pos), 0, ylim/30, linewidth=5, color='red')
                 
             j = 0
-            for mut3 in breakpoints.values:
-                if mut3[0] != ch and mut3[3] != ch:
-                    continue
+            if breakpoints.shape[1] > 6: #TODO
+                for mut3 in breakpoints.values:
+                    if mut3[0] != ch and mut3[3] != ch:
+                        continue
 
-                upper_general = 450
+                    upper_general = ylim * 8/9
+                    step = ylim / 30 #TODO
 
-                upper = upper_general - j * 20
-                alpha =  (mut3[7] / (mut3[7]+ mut3[8])) * 0.7 + 0.3
-                f = 0
-                
-                if mut3[0] == ch and good(mut3[1], curmin, curmax):
-                    plt.scatter([transform(mut3[1])], [upper], marker=m[mut3[2]], color= c[mut3[6]], s=160, alpha=alpha, label=str(mut3[6]))
-                    plt.text(transform(mut3[1]), upper, s=mut3[3]+' '+str(mut3[4]))
-                    f = 1
+                    upper = upper_general - j * step
+                    alpha =  (mut3[7] / (mut3[7]+ mut3[8])) * 0.7 + 0.3
+                    f = 0
 
-                if mut3[3] == ch and good(mut3[4], curmin, curmax):
-                    plt.scatter([transform(mut3[4])], [upper], marker=m[mut3[5]], color=c[mut3[6]], s=160, alpha=alpha, label=str(mut3[6]))
-                    plt.text(transform(mut3[4]), upper, s=mut3[0]+' ' +str(mut3[1]))
-                    f = 1
+                    if mut3[0] == ch and good(mut3[1], curmin, curmax):
+                        plt.scatter([transform(mut3[1])], [upper], marker=m[mut3[2]], color= c[mut3[6]], s=160, alpha=alpha, label=str(mut3[6]))
+                        plt.text(transform(mut3[1]), upper, s=mut3[3]+' '+str(mut3[4]))
+                        f = 1
+
+                    if mut3[3] == ch and good(mut3[4], curmin, curmax):
+                        plt.scatter([transform(mut3[4])], [upper], marker=m[mut3[5]], color=c[mut3[6]], s=160, alpha=alpha, label=str(mut3[6]))
+                        plt.text(transform(mut3[4]), upper, s=mut3[0]+' ' +str(mut3[1]))
+                        f = 1
                     
-                j += f
+                    j += f
 
             plt.xlabel('Mbp')
-            plt.ylim(0, 500)
             plt.xlim(transform(curmin), transform(curmax))
             plt.title(ch + ':' + str(transform(curmin)) + '-' + str(transform(curmax)) + 'Mbp')
+            
+           
+            print("YLIM", ch, ylim)
+            
+            plt.ylim((0, ylim))
+            
+            
             if savefig == False:
                 plt.show()
             else:
@@ -567,4 +598,15 @@ def plot(coverage, breakpoints=pd.DataFrame(), positions=None, mean=None, load_f
                 plt.show()
 
         
-        
+def create_breakpoint_set(breakpoints):
+    res = dict()
+    for ch in set(breakpoints.chrA): #TODO
+        print('ch', ch)
+        pd, dct = extract_chr(breakpoints, ch)
+        print(pd, dct)
+        positions = dct.keys()
+        res[ch] = set(positions)
+    print("RES", res)
+    return res
+    
+    
